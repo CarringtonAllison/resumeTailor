@@ -1,0 +1,72 @@
+import logging
+
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+
+from agents.job_scraper import JobScraperAgent
+from agents.job_search import JobSearchAgent
+from agents.file_writer import FileWriterAgent
+from agents.resume_tailor import ResumeTailorAgent
+from api.session import get
+from config import Config
+
+logger = logging.getLogger(__name__)
+router = APIRouter()
+_config: Config | None = None
+
+
+def init(config: Config):
+    global _config
+    _config = config
+
+
+class JobSearchRequest(BaseModel):
+    query: str | None = None
+    max_jobs: int | None = None
+
+
+@router.post("/jobs/{session_id}")
+async def search_jobs(session_id: str, body: JobSearchRequest = JobSearchRequest()):
+    try:
+        state = get(session_id)
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Session not found")
+    if not state.resume:
+        raise HTTPException(status_code=400, detail="Upload a resume first")
+
+    # Reset jobs list for a fresh search
+    state.jobs = []
+    state.errors = []
+
+    try:
+        JobSearchAgent(_config).run(state, query=body.query, max_jobs=body.max_jobs)
+        JobScraperAgent(_config).run(state)
+    except Exception as e:
+        logger.error("Job search/scrape failed: %s", e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+    return [j.model_dump() for j in state.jobs]
+
+
+@router.post("/tailor/{session_id}/{job_id}")
+async def tailor_resume(session_id: str, job_id: str):
+    try:
+        state = get(session_id)
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    # Return cached result if already tailored
+    cached = next((t for t in state.tailored if t.job_id == job_id), None)
+    if cached:
+        return cached.model_dump()
+
+    try:
+        tailored = ResumeTailorAgent(_config).run_single(state, job_id)
+        FileWriterAgent(_config).run_single(state, job_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        logger.error("Tailoring failed: %s", e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+    return tailored.model_dump()
