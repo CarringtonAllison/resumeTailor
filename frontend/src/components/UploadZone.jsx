@@ -1,10 +1,10 @@
 import { useCallback, useState } from 'react'
 import { motion } from 'framer-motion'
-import { uploadResume, searchJobs } from '../lib/api'
+import { uploadResume } from '../lib/api'
 import { useAppStore } from '../store/appStore'
 
 export default function UploadZone() {
-  const { sessionId, setResume, setJobs, setStage, setError } = useAppStore()
+  const { sessionId, setResume, setStage, setError } = useAppStore()
   const [dragging, setDragging] = useState(false)
 
   const handleFile = useCallback(async (file) => {
@@ -20,17 +20,12 @@ export default function UploadZone() {
       setStage('uploading')
       const resume = await uploadResume(sessionId, file)
       setResume(resume)
-
-      setStage('searching')
-      const jobs = await searchJobs(sessionId)
-      setJobs(jobs)
-
-      setStage('ready')
+      setStage('reviewing')
     } catch (e) {
       setError(e.message)
       setStage('idle')
     }
-  }, [sessionId, setResume, setJobs, setStage, setError])
+  }, [sessionId, setResume, setStage, setError])
 
   const onDrop = (e) => {
     e.preventDefault()
@@ -39,9 +34,9 @@ export default function UploadZone() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center h-full gap-8 px-8">
+    <div className="flex flex-col items-center justify-center h-full gap-6 sm:gap-8 px-4 sm:px-8">
       <div className="text-center">
-        <h1 className="text-5xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent mb-3">
+        <h1 className="text-3xl sm:text-5xl font-bold bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent mb-3">
           Resume Tailor
         </h1>
         <p className="text-slate-400 text-lg">
@@ -51,10 +46,10 @@ export default function UploadZone() {
 
       <motion.label
         htmlFor="resume-upload"
-        className={`relative w-full max-w-lg cursor-pointer rounded-2xl border-2 border-dashed p-12 text-center transition-colors ${
+        className={`relative w-full max-w-lg cursor-pointer rounded-2xl border-2 border-dashed p-8 sm:p-12 text-center transition-colors ${
           dragging
-            ? 'border-indigo-400 bg-indigo-950/40'
-            : 'border-slate-600 bg-slate-900/50 hover:border-indigo-500 hover:bg-slate-900'
+            ? 'border-amber-400 bg-amber-950/40'
+            : 'border-slate-600 bg-[#241c17]/50 hover:border-amber-500 hover:bg-[#241c17]'
         }`}
         onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
         onDragLeave={() => setDragging(false)}

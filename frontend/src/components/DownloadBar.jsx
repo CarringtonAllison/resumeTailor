@@ -30,14 +30,14 @@ export default function DownloadBar() {
           <a
             href={getUrl('docx')}
             download
-            className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 px-5 py-2 text-sm font-semibold text-white transition-colors"
+            className="inline-flex items-center gap-2 rounded-lg bg-amber-600 hover:bg-amber-500 px-5 py-2 text-sm font-semibold text-white transition-colors"
           >
             ⬇ Download DOCX
           </a>
           <a
             href={getUrl('pdf')}
             download
-            className="inline-flex items-center gap-2 rounded-lg bg-slate-700 hover:bg-slate-600 px-5 py-2 text-sm font-semibold text-white transition-colors"
+            className="inline-flex items-center gap-2 rounded-lg bg-[#3a2f28] hover:bg-slate-600 px-5 py-2 text-sm font-semibold text-white transition-colors"
           >
             ⬇ Download PDF
           </a>

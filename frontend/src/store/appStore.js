@@ -20,7 +20,7 @@ function generateSessionId() {
 export const useAppStore = create((set, get) => ({
   sessionId: generateSessionId(),
 
-  // 'idle' | 'uploading' | 'searching' | 'tailoring' | 'ready'
+  // 'idle' | 'uploading' | 'reviewing' | 'searching' | 'tailoring' | 'ready'
   stage: 'idle',
 
   resume: null,         // original parsed Resume
@@ -32,11 +32,25 @@ export const useAppStore = create((set, get) => ({
   wittyTimer: null,
 
   error: null,
+  modalJob: null,        // Job object being previewed in modal, or null
+
+  // Location filter
+  location: '',
+  locationType: 'both',  // 'local' | 'remote' | 'both'
 
   // --- Actions ---
   setResume: (resume) => set({ resume }),
   setJobs: (jobs) => set({ jobs }),
   setError: (error) => set({ error }),
+  setModalJob: (job) => set({ modalJob: job }),
+  setLocation: (location) => set({ location }),
+  setLocationType: (locationType) => set({ locationType }),
+
+  updateJob: (jobId, updatedJob) =>
+    set((s) => ({
+      jobs: s.jobs.map((j) => (j.id === jobId ? updatedJob : j)),
+      modalJob: s.modalJob?.id === jobId ? updatedJob : s.modalJob,
+    })),
 
   selectJob: (jobId) => set({ selectedJobId: jobId }),
 
@@ -45,7 +59,7 @@ export const useAppStore = create((set, get) => ({
 
   setStage: (stage) => {
     const { wittyTimer } = get()
-    if (stage === 'idle' || stage === 'ready') {
+    if (stage === 'idle' || stage === 'reviewing' || stage === 'ready') {
       if (wittyTimer) clearInterval(wittyTimer)
       set({ stage, wittyTimer: null, wittyIndex: 0 })
     } else {
@@ -65,5 +79,40 @@ export const useAppStore = create((set, get) => ({
   currentTailored: () => {
     const { selectedJobId, tailoredResumes } = get()
     return selectedJobId ? tailoredResumes[selectedJobId] ?? null : null
+  },
+
+  // Reset to home — start completely over
+  resetApp: () => {
+    const { wittyTimer } = get()
+    if (wittyTimer) clearInterval(wittyTimer)
+    set({
+      sessionId: generateSessionId(),
+      stage: 'idle',
+      resume: null,
+      jobs: [],
+      selectedJobId: null,
+      tailoredResumes: {},
+      error: null,
+      modalJob: null,
+      location: '',
+      locationType: 'both',
+      wittyTimer: null,
+      wittyIndex: 0,
+    })
+  },
+
+  // Keep resume, go back to role selection for a new search
+  newSearch: () => {
+    const { wittyTimer } = get()
+    if (wittyTimer) clearInterval(wittyTimer)
+    set({
+      stage: 'reviewing',
+      jobs: [],
+      selectedJobId: null,
+      error: null,
+      modalJob: null,
+      wittyTimer: null,
+      wittyIndex: 0,
+    })
   },
 }))

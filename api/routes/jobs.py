@@ -1,4 +1,5 @@
 import logging
+from typing import Literal
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -23,6 +24,8 @@ def init(config: Config):
 class JobSearchRequest(BaseModel):
     query: str | None = None
     max_jobs: int | None = None
+    location: str | None = None
+    location_type: Literal["local", "remote", "both"] | None = None
 
 
 @router.post("/jobs/{session_id}")
@@ -39,13 +42,36 @@ async def search_jobs(session_id: str, body: JobSearchRequest = JobSearchRequest
     state.errors = []
 
     try:
-        JobSearchAgent(_config).run(state, query=body.query, max_jobs=body.max_jobs)
-        JobScraperAgent(_config).run(state)
+        JobSearchAgent(_config).run(
+            state,
+            query=body.query,
+            max_jobs=body.max_jobs,
+            location=body.location,
+            location_type=body.location_type,
+        )
     except Exception as e:
-        logger.error("Job search/scrape failed: %s", e)
+        logger.error("Job search failed: %s", e)
         raise HTTPException(status_code=500, detail=str(e))
 
     return [j.model_dump() for j in state.jobs]
+
+
+@router.post("/jobs/{session_id}/{job_id}/enrich")
+async def enrich_job(session_id: str, job_id: str):
+    try:
+        state = get(session_id)
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    try:
+        job = JobScraperAgent(_config).run_single(state, job_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        logger.error("Enrichment failed for job %s: %s", job_id, e)
+        raise HTTPException(status_code=500, detail=f"Failed to enrich job: {e}")
+
+    return job.model_dump()
 
 
 @router.post("/tailor/{session_id}/{job_id}")
@@ -59,6 +85,16 @@ async def tailor_resume(session_id: str, job_id: str):
     cached = next((t for t in state.tailored if t.job_id == job_id), None)
     if cached:
         return cached.model_dump()
+
+    # Ensure job is enriched before tailoring
+    job = next((j for j in state.jobs if j.id == job_id), None)
+    if not job:
+        raise HTTPException(status_code=404, detail=f"Job {job_id} not found")
+    if not job.enriched:
+        try:
+            JobScraperAgent(_config).run_single(state, job_id)
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Job must be enriched first; auto-enrich failed: {e}")
 
     try:
         tailored = ResumeTailorAgent(_config).run_single(state, job_id)

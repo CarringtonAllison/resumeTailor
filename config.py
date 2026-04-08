@@ -2,13 +2,16 @@ import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from dotenv import load_dotenv
+load_dotenv()
+
 
 @dataclass
 class Config:
     anthropic_api_key: str
     tavily_api_key: str
     model: str = "claude-sonnet-4-6"
-    max_jobs: int = 5
+    max_jobs: int = 20
     output_dir: Path = field(default_factory=lambda: Path("output"))
     frontend_dist: Path = field(default_factory=lambda: Path("frontend/dist"))
 

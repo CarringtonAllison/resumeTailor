@@ -23,13 +23,13 @@ export default function LoadingOverlay() {
           transition={{ duration: 0.3 }}
         >
           {/* Blurred gradient background */}
-          <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" />
+          <div className="absolute inset-0 bg-[#1a1412]/80 backdrop-blur-sm" />
 
           {/* Animated gradient orb */}
           <motion.div
             className="absolute w-96 h-96 rounded-full opacity-20"
             style={{
-              background: 'radial-gradient(circle, #6366f1 0%, #8b5cf6 50%, transparent 70%)',
+              background: 'radial-gradient(circle, #d97706 0%, #f59e0b 50%, transparent 70%)',
             }}
             animate={{ scale: [1, 1.2, 1], rotate: [0, 180, 360] }}
             transition={{ duration: 6, repeat: Infinity, ease: 'linear' }}
@@ -39,7 +39,7 @@ export default function LoadingOverlay() {
           <div className="relative z-10 flex flex-col items-center gap-6 text-center px-8">
             {/* Spinner */}
             <motion.div
-              className="w-14 h-14 rounded-full border-4 border-slate-700 border-t-indigo-500"
+              className="w-14 h-14 rounded-full border-4 border-slate-700 border-t-amber-500"
               animate={{ rotate: 360 }}
               transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
             />

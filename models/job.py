@@ -13,6 +13,10 @@ class Job(BaseModel):
     required_skills: list[str] = []
     responsibilities: list[str] = []
     qualifications: list[str] = []
+    salary: str = ""
+    about: str = ""
+    benefits: list[str] = []
+    enriched: bool = False
 
 
 class PipelineState(BaseModel):

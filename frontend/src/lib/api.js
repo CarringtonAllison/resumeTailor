@@ -16,12 +16,27 @@ export async function uploadResume(sessionId, file) {
   return handleResponse(res)
 }
 
-export async function searchJobs(sessionId, { query, maxJobs } = {}) {
+export async function searchJobs(sessionId, { query, maxJobs, location, locationType } = {}) {
   const res = await fetch(`${BASE}/jobs/${sessionId}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query: query || null, max_jobs: maxJobs || null }),
+    body: JSON.stringify({
+      query: query || null,
+      max_jobs: maxJobs || null,
+      location: location || null,
+      location_type: locationType || null,
+    }),
   })
+  return handleResponse(res)
+}
+
+export async function suggestRoles(sessionId) {
+  const res = await fetch(`${BASE}/suggest-roles/${sessionId}`, { method: 'POST' })
+  return handleResponse(res)
+}
+
+export async function enrichJob(sessionId, jobId) {
+  const res = await fetch(`${BASE}/jobs/${sessionId}/${jobId}/enrich`, { method: 'POST' })
   return handleResponse(res)
 }
 

@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import ResumePanel from './ResumePanel'
 import { useAppStore } from '../store/appStore'
+import { computeDiff } from '../lib/resumeDiff'
 
 export default function ResumeTransition() {
   const resume = useAppStore((s) => s.resume)
@@ -9,6 +10,7 @@ export default function ResumeTransition() {
 
   const tailored = selectedJobId ? tailoredResumes[selectedJobId] ?? null : null
   const displayResume = tailored ? tailored.resume : resume
+  const diff = tailored ? computeDiff(resume, tailored.resume) : null
 
   // Key changes when the displayed resume changes, triggering animation
   const panelKey = tailored ? `tailored-${selectedJobId}` : 'original'
@@ -30,7 +32,7 @@ export default function ResumeTransition() {
               ✦ Tailored for {tailored.company} — {tailored.job_title}
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-800 border border-slate-700 px-3 py-0.5 text-xs text-slate-400 font-medium mb-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#2e2420] border border-slate-700 px-3 py-0.5 text-xs text-slate-400 font-medium mb-2">
               Original Resume
             </span>
           )}
@@ -51,6 +53,7 @@ export default function ResumeTransition() {
             <ResumePanel
               resume={displayResume}
               highlighted={!!tailored}
+              diff={diff}
             />
           </motion.div>
         </AnimatePresence>

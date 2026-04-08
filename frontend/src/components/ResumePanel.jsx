@@ -1,4 +1,4 @@
-export default function ResumePanel({ resume, highlighted = false }) {
+export default function ResumePanel({ resume, highlighted = false, diff = null }) {
   if (!resume) return null
   const { contact, summary, skills, experience, education, extras } = resume
 
@@ -6,8 +6,8 @@ export default function ResumePanel({ resume, highlighted = false }) {
     <div
       className={`h-full overflow-y-auto rounded-xl border p-6 text-sm leading-relaxed transition-all duration-500 ${
         highlighted
-          ? 'border-amber-400/60 bg-slate-900 shadow-amber-400/10 shadow-lg'
-          : 'border-slate-700 bg-slate-900'
+          ? 'border-amber-400/60 bg-[#241c17] shadow-amber-400/10 shadow-lg'
+          : 'border-slate-700 bg-[#241c17]'
       }`}
     >
       {/* Contact */}
@@ -25,7 +25,13 @@ export default function ResumePanel({ resume, highlighted = false }) {
       {/* Summary */}
       {summary && (
         <Section title="Summary">
-          <p className="text-slate-300">{summary}</p>
+          <p className={`text-slate-300 transition-colors ${
+            diff?.summaryChanged
+              ? 'bg-emerald-950/50 border-l-2 border-emerald-400 pl-3 -ml-3 text-emerald-100'
+              : ''
+          }`}>
+            {summary}
+          </p>
         </Section>
       )}
 
@@ -33,14 +39,21 @@ export default function ResumePanel({ resume, highlighted = false }) {
       {skills?.length > 0 && (
         <Section title="Skills">
           <div className="flex flex-wrap gap-1.5">
-            {skills.map((s, i) => (
-              <span
-                key={i}
-                className="rounded-full bg-indigo-950 border border-indigo-800 px-2.5 py-0.5 text-xs text-indigo-300"
-              >
-                {s}
-              </span>
-            ))}
+            {skills.map((s, i) => {
+              const isNew = diff?.newSkills?.has(s)
+              return (
+                <span
+                  key={i}
+                  className={`rounded-full px-2.5 py-0.5 text-xs border transition-colors ${
+                    isNew
+                      ? 'bg-emerald-950/60 border-emerald-500/60 text-emerald-300'
+                      : 'bg-amber-950 border-amber-800 text-amber-300'
+                  }`}
+                >
+                  {s}
+                </span>
+              )
+            })}
           </div>
         </Section>
       )}
@@ -48,24 +61,35 @@ export default function ResumePanel({ resume, highlighted = false }) {
       {/* Experience */}
       {experience?.length > 0 && (
         <Section title="Experience">
-          {experience.map((role, i) => (
-            <div key={i} className="mb-4">
-              <div className="flex items-baseline justify-between">
-                <span className="font-semibold text-slate-200">
-                  {role.title} — {role.company}
-                </span>
-                <span className="text-xs text-slate-500 ml-2 shrink-0">{role.dates}</span>
+          {experience.map((role, i) => {
+            const roleKey = `${role.company}|${role.title}`
+            const changedIndices = diff?.changedBullets?.get(roleKey)
+            return (
+              <div key={i} className="mb-4">
+                <div className="flex items-baseline justify-between">
+                  <span className="font-semibold text-slate-200">
+                    {role.title} — {role.company}
+                  </span>
+                  <span className="text-xs text-slate-500 ml-2 shrink-0">{role.dates}</span>
+                </div>
+                <ul className="mt-1.5 space-y-1">
+                  {role.bullets.map((b, j) => {
+                    const isChanged = changedIndices?.has(j)
+                    return (
+                      <li key={j} className={`flex gap-2 transition-colors ${
+                        isChanged
+                          ? 'text-emerald-200 border-l-2 border-emerald-400 pl-2 -ml-2'
+                          : 'text-slate-400'
+                      }`}>
+                        <span className={isChanged ? 'text-emerald-400 mt-0.5 shrink-0' : 'text-amber-500 mt-0.5 shrink-0'}>•</span>
+                        <span>{b}</span>
+                      </li>
+                    )
+                  })}
+                </ul>
               </div>
-              <ul className="mt-1.5 space-y-1">
-                {role.bullets.map((b, j) => (
-                  <li key={j} className="flex gap-2 text-slate-400">
-                    <span className="text-indigo-500 mt-0.5">•</span>
-                    <span>{b}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+            )
+          })}
         </Section>
       )}
 
@@ -93,7 +117,7 @@ export default function ResumePanel({ resume, highlighted = false }) {
             <ul className="space-y-1">
               {extra.items.map((item, j) => (
                 <li key={j} className="flex gap-2 text-slate-400">
-                  <span className="text-indigo-500">•</span>
+                  <span className="text-amber-500">•</span>
                   <span>{item}</span>
                 </li>
               ))}
@@ -108,7 +132,7 @@ export default function ResumePanel({ resume, highlighted = false }) {
 function Section({ title, children }) {
   return (
     <div className="mb-5">
-      <h3 className="text-xs font-bold uppercase tracking-widest text-indigo-400 mb-2">
+      <h3 className="text-xs font-bold uppercase tracking-widest text-amber-400 mb-2">
         {title}
       </h3>
       {children}

@@ -1,4 +1,5 @@
 anthropic
+python-dotenv
 tavily-python
 httpx
 beautifulsoup4
