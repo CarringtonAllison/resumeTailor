@@ -1,4 +1,5 @@
 import logging
+import uuid
 from typing import Literal
 
 from fastapi import APIRouter, HTTPException
@@ -28,6 +29,10 @@ class JobSearchRequest(BaseModel):
     location_type: Literal["local", "remote", "both"] | None = None
 
 
+class AddJobByUrlRequest(BaseModel):
+    url: str
+
+
 @router.post("/jobs/{session_id}")
 async def search_jobs(session_id: str, body: JobSearchRequest = JobSearchRequest()):
     try:
@@ -54,6 +59,27 @@ async def search_jobs(session_id: str, body: JobSearchRequest = JobSearchRequest
         raise HTTPException(status_code=500, detail=str(e))
 
     return [j.model_dump() for j in state.jobs]
+
+
+@router.post("/jobs/{session_id}/add-url")
+async def add_job_by_url(session_id: str, body: AddJobByUrlRequest):
+    try:
+        state = get(session_id)
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    from models.job import Job
+
+    job = Job(id=str(uuid.uuid4()), title="", company="", url=body.url)
+    state.jobs.insert(0, job)
+
+    try:
+        job = JobScraperAgent(_config).run_single(state, job.id)
+    except Exception as e:
+        logger.error("Failed to scrape job from URL %s: %s", body.url, e)
+        raise HTTPException(status_code=500, detail=f"Failed to scrape job: {e}")
+
+    return job.model_dump()
 
 
 @router.post("/jobs/{session_id}/{job_id}/enrich")

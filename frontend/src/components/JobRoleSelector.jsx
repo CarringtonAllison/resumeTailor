@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useAppStore } from '../store/appStore'
 import { suggestRoles, searchJobs } from '../lib/api'
 import ResumePanel from './ResumePanel'
+import AddJobUrl from './AddJobUrl'
 
 export default function JobRoleSelector() {
   const sessionId = useAppStore((s) => s.sessionId)
@@ -271,6 +272,14 @@ export default function JobRoleSelector() {
                 className="w-full rounded-lg border border-slate-600 bg-[#2e2420] px-4 py-2 text-sm text-slate-200 placeholder-slate-500 focus:border-amber-500 focus:outline-none transition-colors"
               />
             )}
+          </div>
+
+          {/* Add specific job by URL */}
+          <div className="mb-4">
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
+              Or add a specific job
+            </p>
+            <AddJobUrl />
           </div>
 
           {/* Search button */}

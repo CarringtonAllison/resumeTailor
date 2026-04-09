@@ -45,6 +45,15 @@ export async function tailorResume(sessionId, jobId) {
   return handleResponse(res)
 }
 
+export async function addJobByUrl(sessionId, url) {
+  const res = await fetch(`${BASE}/jobs/${sessionId}/add-url`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ url }),
+  })
+  return handleResponse(res)
+}
+
 export function downloadUrl(sessionId, filename) {
   return `${BASE}/download/${sessionId}/${filename}`
 }

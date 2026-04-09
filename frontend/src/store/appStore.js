@@ -41,6 +41,7 @@ export const useAppStore = create((set, get) => ({
   // --- Actions ---
   setResume: (resume) => set({ resume }),
   setJobs: (jobs) => set({ jobs }),
+  prependJob: (job) => set((s) => ({ jobs: [job, ...s.jobs] })),
   setError: (error) => set({ error }),
   setModalJob: (job) => set({ modalJob: job }),
   setLocation: (location) => set({ location }),

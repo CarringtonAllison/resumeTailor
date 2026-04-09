@@ -56,7 +56,7 @@ export default function Navbar() {
   }[stage]
 
   return (
-    <header className="shrink-0 flex items-center justify-between px-3 sm:px-6 py-3 sm:py-3.5 border-b border-slate-800/80 bg-[#1a1412]/50 backdrop-blur-sm">
+    <header className="relative z-50 shrink-0 grid grid-cols-3 items-center px-3 sm:px-6 py-3 sm:py-3.5 border-b border-slate-800/80 bg-[#1a1412]/50 backdrop-blur-sm">
       {/* Logo — clickable, resets to home */}
       <button
         onClick={resetApp}
@@ -73,7 +73,7 @@ export default function Navbar() {
       </button>
 
       {/* Center — tagline or error or stage label */}
-      <div className="hidden sm:flex flex-1 justify-center">
+      <div className="hidden sm:flex justify-center">
         <AnimatePresence mode="wait">
           {error ? (
             <motion.p
@@ -112,7 +112,7 @@ export default function Navbar() {
       </div>
 
       {/* Right — actions */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center justify-end gap-2">
         {/* New Search — visible when in workspace */}
         <AnimatePresence>
           {hasResume && (stage === 'ready' || stage === 'tailoring') && (

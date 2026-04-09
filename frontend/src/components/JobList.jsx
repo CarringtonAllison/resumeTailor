@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAppStore } from '../store/appStore'
+import AddJobUrl from './AddJobUrl'
 
 const PAGE_SIZE = 15
 
@@ -11,6 +12,9 @@ export default function JobList() {
   const setModalJob = useAppStore((s) => s.setModalJob)
 
   const [page, setPage] = useState(0)
+
+  // Reset to first page when jobs list changes (e.g. new job added by URL)
+  useEffect(() => { setPage(0) }, [jobs.length])
 
   const totalPages = Math.ceil(jobs.length / PAGE_SIZE)
   const visibleJobs = jobs.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
@@ -28,6 +32,11 @@ export default function JobList() {
             Page {page + 1} of {totalPages}
           </span>
         )}
+      </div>
+
+      {/* Add job by URL */}
+      <div className="shrink-0 mb-1">
+        <AddJobUrl />
       </div>
 
       {/* Job cards */}
