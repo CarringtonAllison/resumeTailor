@@ -9,7 +9,7 @@ An AI-powered tool that reads your resume, finds relevant job postings, and tail
 
 ## Demo
 
-https://github.com/CarringtonAllison/resumeTailor/releases/download/v0.1.0/resumetailor.mp4
+<video src="https://github.com/CarringtonAllison/resumeTailor/releases/download/v0.1.0/resumetailor.mp4" controls width="100%"></video>
 
 ## How It Works
 
