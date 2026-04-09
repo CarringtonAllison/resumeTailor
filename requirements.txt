@@ -10,3 +10,7 @@ pydantic>=2.0
 fastapi
 uvicorn
 python-multipart
+
+# Testing
+pytest
+pytest-asyncio

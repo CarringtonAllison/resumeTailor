@@ -7,16 +7,21 @@ An AI-powered tool that reads your resume, finds relevant job postings, and tail
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115-green)
 ![Claude](https://img.shields.io/badge/Claude-Sonnet%204.6-orange)
 
+## Demo
+
+https://github.com/CarringtonAllison/resumeTailor/releases/download/v0.1.0/resumetailor.mp4
+
 ## How It Works
 
 1. **Upload** your resume (PDF or DOCX)
 2. **Select roles** from AI-suggested titles or type your own
 3. **Set location** preference (Local, Remote, or Both)
-4. **Browse** job postings found from LinkedIn, Indeed, Greenhouse, Lever, and more
-5. **View** full job details — skills, responsibilities, qualifications, salary
-6. **Tailor** your resume with one click — the AI rewrites it to match the job
-7. **See the diff** — changed sections are highlighted in green
-8. **Download** tailored resumes as DOCX or PDF
+4. **Add a specific job** by URL or paste the job description directly
+5. **Browse** job postings found from LinkedIn, Indeed, Greenhouse, Lever, and more
+6. **View** full job details — skills, responsibilities, qualifications, salary
+7. **Tailor** your resume with one click — the AI rewrites it to match the job
+8. **See the diff** — changed sections are highlighted in green
+9. **Download** tailored resumes as DOCX or PDF
 
 ## Tech Stack
 
@@ -43,6 +48,7 @@ resumeTailor/
   tools/           # Stateless utilities (scraping, file I/O)
   prompts/         # LLM system prompt text files
   frontend/        # React SPA (Vite + Tailwind)
+  tests/           # pytest test suite
   config.py        # App configuration (loads from .env)
 ```
 
@@ -98,6 +104,12 @@ npm run dev
 
 Open [http://localhost:5173](http://localhost:5173) in your browser.
 
+### Running Tests
+
+```bash
+python -m pytest tests/ -v
+```
+
 ### Production Build
 
 Build the frontend and serve it from FastAPI:
@@ -118,6 +130,8 @@ The built SPA is served from `frontend/dist/` at the root URL.
 | `POST` | `/api/upload` | Upload a resume (PDF/DOCX), returns parsed Resume JSON |
 | `POST` | `/api/suggest-roles/{session_id}` | Get AI-suggested job roles based on resume |
 | `POST` | `/api/jobs/{session_id}` | Search for jobs with role query, location, and filters |
+| `POST` | `/api/jobs/{session_id}/add-url` | Add a specific job by URL (scrapes and enriches it) |
+| `POST` | `/api/jobs/{session_id}/add-text` | Add a job by pasting its description (Claude extracts structured data) |
 | `POST` | `/api/jobs/{session_id}/{job_id}/enrich` | Scrape and enrich a single job with full details |
 | `POST` | `/api/tailor/{session_id}/{job_id}` | Tailor resume for a specific job |
 | `GET` | `/api/download/{session_id}/{filename}` | Download a tailored resume (DOCX or PDF) |
@@ -126,7 +140,9 @@ The built SPA is served from `frontend/dist/` at the root URL.
 
 - **Smart role suggestions** — Claude analyzes your resume and suggests 6 relevant job titles
 - **Multi-source job search** — Searches LinkedIn, Indeed, Greenhouse, Lever, and Ashby
-- **Lazy enrichment** — Job details load on-demand when you click, keeping search fast (~3-5 sec)
+- **Add job by URL** — Paste a direct job posting link to scrape and add it to results
+- **Paste job description** — For sites that block scraping (Indeed, LinkedIn), paste the description directly
+- **Lazy enrichment** — Job details load on-demand when you click, keeping search fast
 - **Structured job details** — Modal shows salary, about, skills, responsibilities, qualifications, and benefits
 - **Resume diff highlighting** — Green highlights show exactly what changed in the tailored version
 - **My Resumes drawer** — Quick access to all tailored resumes with DOCX/PDF download

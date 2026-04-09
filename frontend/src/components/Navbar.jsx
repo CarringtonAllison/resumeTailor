@@ -141,7 +141,7 @@ export default function Navbar() {
               className="flex items-center gap-2 rounded-lg border border-slate-700 bg-[#2e2420]/60 px-3 py-1.5 text-sm text-slate-300 hover:bg-[#3a2f28]/60 hover:text-slate-100 transition-colors"
             >
               My Resumes
-              <span className="rounded-full bg-amber-600 px-1.5 py-0.5 text-xs font-bold text-white leading-none">
+              <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-600 text-xs font-bold text-white">
                 {tailoredCount}
               </span>
             </motion.button>

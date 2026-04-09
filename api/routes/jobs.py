@@ -33,6 +33,11 @@ class AddJobByUrlRequest(BaseModel):
     url: str
 
 
+class AddJobByTextRequest(BaseModel):
+    text: str
+    url: str = ""
+
+
 @router.post("/jobs/{session_id}")
 async def search_jobs(session_id: str, body: JobSearchRequest = JobSearchRequest()):
     try:
@@ -61,12 +66,36 @@ async def search_jobs(session_id: str, body: JobSearchRequest = JobSearchRequest
     return [j.model_dump() for j in state.jobs]
 
 
+def _looks_like_search_page(url: str) -> bool:
+    """Reject search/listing URLs — we need a direct link to one job posting."""
+    lowered = url.lower()
+    # Generic search-page patterns
+    if any(p in lowered for p in ["/jobs-search", "/jobs/search", "/search?", "q=", "search="]):
+        return True
+    # Indeed search vs individual posting
+    if "indeed.com" in lowered and "/viewjob" not in lowered and "/rc/" not in lowered:
+        return True
+    # LinkedIn search vs individual posting
+    if "linkedin.com" in lowered and "/jobs/search" in lowered:
+        return True
+    # Google search
+    if "google.com/search" in lowered:
+        return True
+    return False
+
+
 @router.post("/jobs/{session_id}/add-url")
 async def add_job_by_url(session_id: str, body: AddJobByUrlRequest):
     try:
         state = get(session_id)
     except KeyError:
         raise HTTPException(status_code=404, detail="Session not found")
+
+    if _looks_like_search_page(body.url):
+        raise HTTPException(
+            status_code=400,
+            detail="That looks like a search results page. Please paste a direct link to a specific job posting.",
+        )
 
     from models.job import Job
 
@@ -76,8 +105,36 @@ async def add_job_by_url(session_id: str, body: AddJobByUrlRequest):
     try:
         job = JobScraperAgent(_config).run_single(state, job.id)
     except Exception as e:
+        # Remove the empty job so it doesn't leave a ghost entry
+        state.jobs = [j for j in state.jobs if j.id != job.id]
         logger.error("Failed to scrape job from URL %s: %s", body.url, e)
-        raise HTTPException(status_code=500, detail=f"Failed to scrape job: {e}")
+        raise HTTPException(status_code=422, detail=str(e))
+
+    return job.model_dump()
+
+
+@router.post("/jobs/{session_id}/add-text")
+async def add_job_by_text(session_id: str, body: AddJobByTextRequest):
+    try:
+        state = get(session_id)
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    text = body.text.strip()
+    if len(text) < 50:
+        raise HTTPException(status_code=400, detail="Please paste more of the job description.")
+
+    from models.job import Job
+
+    job = Job(id=str(uuid.uuid4()), title="", company="", url=body.url)
+    state.jobs.insert(0, job)
+
+    try:
+        job = JobScraperAgent(_config).parse_text(job, text)
+    except Exception as e:
+        state.jobs = [j for j in state.jobs if j.id != job.id]
+        logger.error("Failed to parse job text: %s", e)
+        raise HTTPException(status_code=500, detail=f"Failed to parse job description: {e}")
 
     return job.model_dump()
 

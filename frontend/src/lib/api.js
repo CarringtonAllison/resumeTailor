@@ -54,6 +54,15 @@ export async function addJobByUrl(sessionId, url) {
   return handleResponse(res)
 }
 
+export async function addJobByText(sessionId, text, url = '') {
+  const res = await fetch(`${BASE}/jobs/${sessionId}/add-text`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text, url }),
+  })
+  return handleResponse(res)
+}
+
 export function downloadUrl(sessionId, filename) {
   return `${BASE}/download/${sessionId}/${filename}`
 }
